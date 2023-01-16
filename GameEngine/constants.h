@@ -22,8 +22,8 @@
 const char CLASS_NAME[] = "WinMain";
 const char GAME_TITLE[] = "DirectX_2dGameEngine";
 const bool FULLSCREEN = false;              // windowed or fullscreen
-const UINT  GAME_WIDTH = 640;              // width of game in pixels
-const UINT  GAME_HEIGHT = 480;              // height of game in pixels
+const UINT  GAME_WIDTH = 1920;              // width of game in pixels
+const UINT  GAME_HEIGHT = 1080;              // height of game in pixels
 
 // key mappings
 // In this game simple constants are used for key mappings. If variables were used

@@ -39,19 +39,26 @@ void Graphics::initialize(HWND hw, int w, int h, bool full)
 	// D3D 프레젠테이션 매개변수 초기화
 	initD3Dpp();
 
+	//전체화면 모드일때 어댑터가 호환되는지 확인하여 리프레시 속도를 호환되는 것으로 설정
+	if (fullscreen)
+	{
+		if (isAdapterCompatible())
+			d3dpp.FullScreen_RefreshRateInHz = pMode.RefreshRate;
+		else
+			throw(GameError(gameErrorNS::FATAL_ERROR, "The graphics device does not support the specified resolution and/or format"));
+	}
 
-	// determine if graphics card supports harware texturing and lighting and vertex shaders
+	// 그래픽 카드가 텍스처, 라이팅, 정점 셰이더를 지원하는지 확인
 	D3DCAPS9 caps;
 	DWORD behavior;
 	result = direct3d->GetDeviceCaps(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &caps);
-	// If device doesn't support HW T&L or doesn't support 1.1 vertex 
-	// shaders in hardware, then switch to software vertex processing.
+
+	// 디바이스가 ~를 지원하지 않는다면 소프트웨어 정점처리로 전환함.
 	if ((caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0 ||
 		caps.VertexShaderVersion < D3DVS_VERSION(1, 1))
 		behavior = D3DCREATE_SOFTWARE_VERTEXPROCESSING;  // use software only processing
 	else
 		behavior = D3DCREATE_HARDWARE_VERTEXPROCESSING;  // use hardware only processing
-
 
 
 	// Direct3D 디바이스 생성
@@ -105,6 +112,26 @@ HRESULT Graphics::showBackbuffer()
 
 	return result;
 }
+
+//============================================================================
+// 어댑터가 d3dpp에 지정된 백 버퍼의 높이, 폭, 리프레시 속도와 호환되는지 확인하여,  pMode 구조체에 호환 모드의 형식을 채운다. 
+//============================================================================
+bool Graphics::isAdapterCompatible()
+{
+	// 지정된 어탭터에 대해 사용가능한 디스플레이 모드의 수 반환
+	UINT modes = direct3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, d3dpp.BackBufferFormat);
+
+	// 호환되는 모드를 찾았고, pMode 구조체가 채워져 있는지 확인. 
+	for (UINT i = 0; i < modes; i++)
+	{
+		result = direct3d->EnumAdapterModes(D3DADAPTER_DEFAULT, d3dpp.BackBufferFormat, i, &pMode);
+
+		if (pMode.Height == d3dpp.BackBufferHeight && pMode.Width == d3dpp.BackBufferWidth && pMode.RefreshRate >= d3dpp.FullScreen_RefreshRateInHz)
+			return true;
+	}
+	return false;
+}
+
 
 //=============================================================================
 // Release all

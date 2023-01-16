@@ -154,6 +154,17 @@ bool CreateMainWindow(HWND &hwnd, HINSTANCE hInstance, int nCmdShow)
 	if (!hwnd)
 		return false;
 
+	
+	// 윈도우 클라이언트 영역을 원하는 값으로 재설정
+	if (!FULLSCREEN)
+	{
+		RECT clientRect;
+		GetClientRect(hwnd, &clientRect);
+
+		MoveWindow(hwnd, 0, 0, GAME_WIDTH + (GAME_WIDTH - clientRect.right), GAME_HEIGHT + (GAME_HEIGHT - clientRect.bottom), TRUE);
+	}
+	
+
 	// 윈도우를 표시
 	ShowWindow(hwnd, nCmdShow);
 

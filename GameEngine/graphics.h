@@ -34,6 +34,7 @@ private:
 	LP_3D		direct3d;
 	LP_3DDEVICE	device3d;
 	D3DPRESENT_PARAMETERS d3dpp;
+	D3DDISPLAYMODE pMode;
 
 	// 다른 변수
 	HRESULT	result;
@@ -60,6 +61,9 @@ public :
 
 	// 화면에 보이지 않는 백 버퍼를 화면에 표시 
 	HRESULT showBackbuffer();
+
+	// 어댑터가 d3dpp에 지정된 백 버퍼의 높이, 폭, 리프레시속도와 호환되는지 확인하여 pMode 구조체에 호환 모드의 형식을 채운다. 
+	bool isAdapterCompatible();
 };
 
 #endif
