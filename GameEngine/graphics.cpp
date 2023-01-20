@@ -10,6 +10,8 @@ Graphics::Graphics()
 	fullscreen = false;
 	width = GAME_WIDTH;
 	height = GAME_HEIGHT;
+
+	backColor = SETCOLOR_ARGB(255, 0, 0, 128); // dark blue;
 }
 
 //================================================================================
@@ -132,6 +134,29 @@ bool Graphics::isAdapterCompatible()
 	return false;
 }
 
+// ================================================================================================
+// 로스트 상태가 된 디바이스를 확인
+// ================================================================================================
+HRESULT Graphics::getDeviceState()
+{
+	result = E_FAIL;
+	if (device3d == NULL)
+		return result;
+	result = device3d->TestCooperativeLevel(); //디바이스 로스트가 발생했는지 테스트
+	return result;
+}
+
+// ================================================================================================
+// 그래픽 디바이스 리셋 - 
+// ================================================================================================
+HRESULT Graphics::reset()
+{
+	result = E_FAIL;
+	initD3Dpp();
+	result = device3d->Reset(&d3dpp);
+	
+	return result;
+}
 
 //=============================================================================
 // Release all

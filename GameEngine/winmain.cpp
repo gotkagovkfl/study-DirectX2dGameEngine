@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <crtdbg.h>
-#include "graphics.h"
+#include "spaceWar.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int);
 bool CreateMainWindow(HWND &, HINSTANCE, int);
@@ -16,6 +16,10 @@ HINSTANCE hinst;
 // Graphics 포인터
 Graphics* graphics;
 
+// 게임 포인터
+Spacewar* game = NULL;
+HWND hwnd = NULL;
+
 //==========================================
 // 윈도우 애플리케이션의 시작 위치 - main
 //==========================================
@@ -25,11 +29,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	#if defined(DEBUG) | defined(_DEBUG)
 		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	#endif
-
 	
-	//
-	MSG msg;
-	HWND hwnd = NULL;
+	MSG msg;	// 게임 중 발생하는 이벤트 메세지
+
+	// 게임 생성
+	game = new Spacewar;
 
 	// 창을 만든다.
 	if (!CreateMainWindow(hwnd, hInstance, nCmdShow))
@@ -37,9 +41,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	try
 	{
-		// 그래픽 객체 생성
-		graphics = new Graphics;
-		graphics->initialize(hwnd, GAME_WIDTH, GAME_HEIGHT, FULLSCREEN);
+		// 게임 초기화 
+		game->initialize(hwnd);
 
 		// main message loop 
 		int done = 0;
@@ -57,20 +60,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				DispatchMessage(&msg);
 			}
 			else // 메세지 없으면 화면 교체
-				graphics->showBackbuffer();
+				game->run(hwnd);
 		}
 		safeDelete(graphics);
 		return msg.wParam;
 
 	}
-	// 정의한 게임에러 발생시
+	// 정의한 게임에러 발생시 메모리 해제
 	catch (const GameError& err)
 	{
+		game->deleteAll();
+		DestroyWindow(hwnd);
 		MessageBox(NULL, err.getMessage(), "Error", MB_OK);
 	}
 	// 정의하지 않는 게임에러 발생시
 	catch (...)
 	{
+		game->deleteAll();
+		DestroyWindow(hwnd);
 		MessageBox(NULL, "Unknown error occured in game.", "Error", MB_OK);
 	}
 	safeDelete(graphics); // 마치면서 리소스 해제
@@ -82,24 +89,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 //==========================================
 LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	switch (msg)
-	{
-		// 프로그램 종료 요청 시
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-
-	case WM_CHAR:               // a character was entered by the keyboard
-		switch (wParam)         // the character is in wParam
-		{
-		case ESC_KEY:       // exit program key
-			//tell Windows to kill this program
-			PostQuitMessage(0);
-			return 0;
-		}
-	}
-
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return game->messageHandler(hwnd, msg, wParam, lParam);
 }
 
 
@@ -153,7 +143,6 @@ bool CreateMainWindow(HWND &hwnd, HINSTANCE hInstance, int nCmdShow)
 	// 윈도우를 생성하는 동안 에러가 발생한다면
 	if (!hwnd)
 		return false;
-
 	
 	// 윈도우 클라이언트 영역을 원하는 값으로 재설정
 	if (!FULLSCREEN)
@@ -163,12 +152,9 @@ bool CreateMainWindow(HWND &hwnd, HINSTANCE hInstance, int nCmdShow)
 
 		MoveWindow(hwnd, 0, 0, GAME_WIDTH + (GAME_WIDTH - clientRect.right), GAME_HEIGHT + (GAME_HEIGHT - clientRect.bottom), TRUE);
 	}
-	
 
 	// 윈도우를 표시
 	ShowWindow(hwnd, nCmdShow);
 
-	// 윈도우 프로시저에게 WM_PAINT 메세지를 보낸다.
-	UpdateWindow(hwnd);
 	return true;
 }

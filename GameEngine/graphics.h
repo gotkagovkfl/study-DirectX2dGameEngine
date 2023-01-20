@@ -42,6 +42,7 @@ private:
 	bool	fullscreen;
 	int		width;
 	int		height;
+	COLOR_ARGB backColor;
 	
 	// 
 	void	initD3Dpp(); // D3D 프레젠테이션 매개변수 초기화 
@@ -64,6 +65,40 @@ public :
 
 	// 어댑터가 d3dpp에 지정된 백 버퍼의 높이, 폭, 리프레시속도와 호환되는지 확인하여 pMode 구조체에 호환 모드의 형식을 채운다. 
 	bool isAdapterCompatible();
+
+	// 로스트 상태가 된 디바이스를 확인한다.
+	HRESULT getDeviceState();
+
+	// 그래픽 디바이스 리셋 
+	HRESULT reset();
+
+
+	// =========================  렌더링을 위한 씬 관련 함수 ====================================
+	// ================================================================================================
+	// 백버퍼를 지우고 DirectX의 BeginScene 호출
+	// ================================================================================================
+	HRESULT beginScene()
+	{
+		result = E_FAIL;
+		if (device3d == NULL)
+			return result;
+
+		device3d->Clear(0, NULL, D3DCLEAR_TARGET, backColor, 1.0F, 0); // 배경깔고
+		result = device3d->BeginScene();	// 씬 시작
+		return result;
+	}
+
+	// ================================================================================================
+	// DirectX의 EndScene 호출
+	// ================================================================================================
+	HRESULT endScene()
+	{
+		result = E_FAIL;
+		if (device3d)
+			result = device3d->EndScene();
+		return result;
+	}
+
 };
 
 #endif
