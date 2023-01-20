@@ -104,11 +104,6 @@ HRESULT Graphics::showBackbuffer()
 {
 	result = E_FAIL;    // 기본값은 FAIL. 성공시 바뀜
 
-	// (this function will be moved in later versions)
-	// 
-	// 백버퍼를 채우기  (rgb 0 255 0 )
-	device3d->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 222, 255), 0.0f, 0);
-
 	// 백버퍼를 화면에 표시 
 	result = device3d->Present(NULL, NULL, NULL, NULL);
 
