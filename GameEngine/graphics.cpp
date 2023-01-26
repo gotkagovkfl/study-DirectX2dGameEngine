@@ -67,6 +67,10 @@ void Graphics::initialize(HWND hw, int w, int h, bool full)
 	result = direct3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, behavior, &d3dpp, &device3d);
 	if (FAILED(result))
 		throw(GameError(gameErrorNS::FATAL_ERROR, "Error creating Direct3D device"));
+
+	result = D3DXCreateSprite(device3d, &sprite);
+	if (FAILED(result))
+		throw(GameError(gameErrorNS::FATAL_ERROR, "Error creating Direct3D sprtie"));
 }
 
 //===================================================================================
@@ -158,6 +162,114 @@ HRESULT Graphics::reset()
 //=============================================================================
 void Graphics::releaseAll()
 {
-	safeRelease(device3d);
-	safeRelease(direct3d);
+	SAFE_RELEASE(sprite);
+	SAFE_RELEASE(device3d);
+	SAFE_RELEASE(direct3d);
+}
+
+
+
+//===============================================================================
+// 텍스처를 기본 D3D 메모리로 불러온다. 
+//===============================================================================
+HRESULT Graphics::loadTexture(const char* filename, COLOR_ARGB transcolor, UINT& width, UINT& height, LP_TEXTURE& texture)
+{
+	D3DXIMAGE_INFO info;	// 파일 정보를 읽기 위한 구조체
+	result = E_FAIL;
+	
+	try
+	{
+		if (filename == NULL)
+		{
+			texture = NULL;
+			return D3DERR_INVALIDCALL;
+		}
+		// 파일로부터 폭과 높이를 얻는다. 
+		result = D3DXGetImageInfoFromFile(filename, &info);
+		if (result != D3D_OK)
+			return result;
+		width = info.Width;
+		height = info.Height;
+
+		// 파일을 불러와 새 텍스처를 생성한다.
+		result = D3DXCreateTextureFromFileEx(
+			device3d,			//3d 디바이스
+			filename,			// 이미지 파일명
+			info.Width,			
+			info.Height,
+			1,					// 밉맵 수준 (연결하지 않을 땐 1)
+			0,					// 사용 ()
+			D3DFMT_UNKNOWN,		// 표면 형식 (기본)
+			D3DPOOL_DEFAULT,	// 텍스처를 ㅜ이한 메모리 클래스
+			D3DX_DEFAULT,		// 이미지 필터
+			D3DX_DEFAULT,		// 밉 필터
+			transcolor,			// 투명도를 위한 색상 키
+			&info,				// 비트맵 파일 정보 (불러온 파일로부터)
+			NULL,				// 색상 팔레트
+			&texture			// 텍스처 목적지
+		);
+	}
+	catch (...)
+	{
+		throw(GameError(gameErrorNS::FATAL_ERROR, "Error in Graphics::loadTexture"));
+	}
+	return result;
+}
+
+//===============================================================================
+// SpriteData 구조체의 정보를 토대로 스프라이트를 그린다. 
+//===============================================================================
+void Graphics::drawSprite(const SpriteData& spriteData, COLOR_ARGB color)
+{
+	// 텍스처가 없다면 반환
+	if (spriteData.texture == NULL)
+		return;
+	
+	// 스프라이트의 중심을 찾는다. 
+	D3DXVECTOR2 spriteCenter = D3DXVECTOR2((float)(spriteData.width / 2 * spriteData.scale), (float)(spriteData.height / 2 * spriteData.scale));
+
+	// 스프라이트의 화면 위치
+	D3DXVECTOR2 translate = D3DXVECTOR2((float)spriteData.x, (float)spriteData.y);
+	
+	// x,y 확대 배율 조정
+	D3DXVECTOR2 scaling(spriteData.scale, spriteData.scale);
+
+	// 뒤집힘에 맞춰 좌표 재조정 (수평, 수직)
+	if (spriteData.flipHorizontal)		// 수평
+	{
+		// 뒤집기 위해 x 방향에 -1을 곱한다. 
+		scaling.x *= -1;
+
+		// 뒤집은 이미지의 중심을 가져온다. 
+		spriteCenter.x -= (float)(spriteData.width * spriteData.scale);
+
+		// 이동시키기 
+		translate.x += (float)(spriteData.width * spriteData.scale);
+	}
+	if (spriteData.flipVertical)	// 수직
+	{
+		scaling.y *= -1;
+
+		spriteCenter.y -= (float)(spriteData.height * spriteData.scale);
+
+		translate.y += (float)(spriteData.height * spriteData.scale);
+	}
+
+	// 스프라이트를 회전, 크기 조정, 배치하기 위한 행렬을 생성한다. 
+	D3DXMATRIX matrix;
+	D3DXMatrixTransformation2D(
+		&matrix,		// 행렬					
+		NULL,			// 크기를 조정할 때 기준을 외쪽 상단으로 유지
+		0.0f,			// 크기 조정 회전 없음
+		&scaling,		// 크기 조정값
+		&spriteCenter,	// 회전 중심
+		(float)(spriteData.angle),		// 회전 각도
+		&translate			// x,y 위치
+	);
+
+	// 행렬에 맞춰 스프라이트 정보를 조정한다.
+	sprite->SetTransform(&matrix);
+
+	// 스프라이트를 그린다.
+	sprite->Draw(spriteData.texture, &spriteData.rect, NULL, NULL, color);
 }

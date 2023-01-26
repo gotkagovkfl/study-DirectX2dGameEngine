@@ -15,16 +15,71 @@
 class Graphics;
 
 #include <d3d9.h>
+#include <d3dx9.h>
 #include "constants.h"
 #include "gameError.h"
 
 // DirectX 포인터 타입
+#define LP_TEXTURE	LPDIRECT3DTEXTURE9
+#define LP_SPRITE	LPD3DXSPRITE
 #define LP_3DDEVICE LPDIRECT3DDEVICE9
 #define LP_3D		LPDIRECT3D9
 
 // 색깔 정의
 #define COLOR_ARGB DWORD
 #define SETCOLOR_ARGB(a,r,g,b) ((COLOR_ARGB)((((a)&0xff)<<24)|(((r)&0xff)<<16)|(((g)&0xff)<<8)|((b)&0xff)))
+
+namespace graphicsNS
+{
+	// Some common colors
+	// ARGB numbers range from 0 through 255
+	// A = Alpha channel (transparency where 255 is opaque)
+	// R = Red, G = Green, B = Blue
+	const COLOR_ARGB ORANGE = D3DCOLOR_ARGB(255, 255, 165, 0);
+	const COLOR_ARGB BROWN = D3DCOLOR_ARGB(255, 139, 69, 19);
+	const COLOR_ARGB LTGRAY = D3DCOLOR_ARGB(255, 192, 192, 192);
+	const COLOR_ARGB GRAY = D3DCOLOR_ARGB(255, 128, 128, 128);
+	const COLOR_ARGB OLIVE = D3DCOLOR_ARGB(255, 128, 128, 0);
+	const COLOR_ARGB PURPLE = D3DCOLOR_ARGB(255, 128, 0, 128);
+	const COLOR_ARGB MAROON = D3DCOLOR_ARGB(255, 128, 0, 0);
+	const COLOR_ARGB TEAL = D3DCOLOR_ARGB(255, 0, 128, 128);
+	const COLOR_ARGB GREEN = D3DCOLOR_ARGB(255, 0, 128, 0);
+	const COLOR_ARGB NAVY = D3DCOLOR_ARGB(255, 0, 0, 128);
+	const COLOR_ARGB WHITE = D3DCOLOR_ARGB(255, 255, 255, 255);
+	const COLOR_ARGB YELLOW = D3DCOLOR_ARGB(255, 255, 255, 0);
+	const COLOR_ARGB MAGENTA = D3DCOLOR_ARGB(255, 255, 0, 255);
+	const COLOR_ARGB RED = D3DCOLOR_ARGB(255, 255, 0, 0);
+	const COLOR_ARGB CYAN = D3DCOLOR_ARGB(255, 0, 255, 255);
+	const COLOR_ARGB LIME = D3DCOLOR_ARGB(255, 0, 255, 0);
+	const COLOR_ARGB BLUE = D3DCOLOR_ARGB(255, 0, 0, 255);
+	const COLOR_ARGB BLACK = D3DCOLOR_ARGB(255, 0, 0, 0);
+
+	// 
+	const COLOR_ARGB FILTER = D3DCOLOR_ARGB(0, 0, 0, 0);  // use to specify drawing with colorFilter
+	const COLOR_ARGB ALPHA25 = D3DCOLOR_ARGB(64, 255, 255, 255);  // AND with color to get 25% alpha
+	const COLOR_ARGB ALPHA50 = D3DCOLOR_ARGB(128, 255, 255, 255);  // AND with color to get 50% alpha
+	const COLOR_ARGB BACK_COLOR = NAVY;                         // background color of game
+
+	//
+	enum DISPLAY_MODE { TOGGLE, FULLSCREEN, WINDOW };
+}
+
+
+// SpriteData : Graphics::drawSprtie에서 스프라이트를 그리기 위해 필요한 속성
+struct SpriteData
+{
+	int width;			// 픽셀 단위 폭
+	int height;			// 픽셀 단위 높이
+	float x;			// 화면 위치 (왼쪽 상단 모서리 기준)
+	float y;
+	float scale;		// <1 이면 작게, >1이면 크게
+	float angle;		// 라디안 단위 회전 각도
+	RECT rect;			// 큰 텍스처에서 사용할 이미지 선택
+	LP_TEXTURE texture;		// 텍스처 이미지를 가리키는 포인터
+	bool flipHorizontal;		// true라면 수평으로 뒤집음
+	bool flipVertical;			// true라면 수직으로 뒤집음
+};
+
 
 //
 class Graphics
@@ -33,6 +88,7 @@ private:
 	// DirectX 포인터 및 관련 변수
 	LP_3D		direct3d;
 	LP_3DDEVICE	device3d;
+	LP_SPRITE	sprite;
 	D3DPRESENT_PARAMETERS d3dpp;
 	D3DDISPLAYMODE pMode;
 
@@ -72,6 +128,12 @@ public :
 	// 그래픽 디바이스 리셋 
 	HRESULT reset();
 
+	//============================== 스프라이트 관련 ===========================================
+	// 텍스처를 기본 D3D 메모리로 불러온다. 
+	HRESULT loadTexture(const char* file, COLOR_ARGB transcolor, UINT& width, UINT& height, LP_TEXTURE& texture);
+
+	// SpriteData 구조체의 정보를 토대로 스프라이트를 그린다. 
+	void drawSprite(const SpriteData& spriteData, COLOR_ARGB color = graphicsNS::WHITE);
 
 	// =========================  렌더링을 위한 씬 관련 함수 ====================================
 	// ================================================================================================
@@ -97,6 +159,22 @@ public :
 		if (device3d)
 			result = device3d->EndScene();
 		return result;
+	}
+
+	// ================================================================================================
+	// 스프라이트 시작
+	// ================================================================================================
+	void spriteBegin()
+	{
+		sprite->Begin(D3DXSPRITE_ALPHABLEND);
+	}
+
+	// ================================================================================================
+	// 스프라이트 끝
+	// ================================================================================================
+	void spriteEnd()
+	{
+		sprite->End();
 	}
 
 };

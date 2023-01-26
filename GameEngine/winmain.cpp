@@ -62,7 +62,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			else // 메세지 없으면 화면 교체
 				game->run(hwnd);
 		}
-		safeDelete(graphics);
+		SAFE_DELETE(game);
 		return msg.wParam;
 
 	}
@@ -80,7 +80,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DestroyWindow(hwnd);
 		MessageBox(NULL, "Unknown error occured in game.", "Error", MB_OK);
 	}
-	safeDelete(graphics); // 마치면서 리소스 해제
+	SAFE_DELETE(game); // 마치면서 리소스 해제
 	return 0;
 }
 

@@ -241,8 +241,8 @@ void Game::resetAll()
 void Game::deleteAll()
 {
 	releaseAll();
-	safeDelete(graphics);
-	safeDelete(input);
+	SAFE_DELETE(graphics);
+	SAFE_DELETE(input);
 	initialized = false;
 }
 
