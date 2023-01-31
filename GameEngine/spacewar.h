@@ -17,8 +17,10 @@ private:
 	// 게임 아이템
 	TextureManager nebulaTexture;
 	TextureManager planetTexture;
+	TextureManager shipTexture;
 	Image planet;
 	Image nebula;
+	Image ship;
 	
 public :
 	// 생성자

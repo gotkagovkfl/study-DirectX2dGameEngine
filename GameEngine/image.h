@@ -83,9 +83,9 @@ public:
 
     virtual void setFrameDelay(float d) { frameDelay = d; }
     virtual void setFrames(int s, int e) { startFrame = s; endFrame = e; }
-    //virtual void setCurrentFrame(int c);
+    virtual void setCurrentFrame(int c);
 
-    //virtual void setRect();
+    virtual void setRect();
 
     virtual void setSpriteDataRect(RECT r) { spriteData.rect = r; }
 
@@ -111,7 +111,7 @@ public:
     virtual void draw(SpriteData sd, COLOR_ARGB color = graphicsNS::WHITE);
 
     // 이미지 애니메이션 업데이트 
-    //virtual void update(float frameTime);
+    virtual void update(float frameTime);
 };
 
 

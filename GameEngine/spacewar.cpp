@@ -39,6 +39,10 @@ void Spacewar::initialize(HWND hwnd)
 	// 행성 텍스처 
 	if (!planetTexture.initialize(graphics, PLANET_IMAGE))
 		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initializing planet texture"));
+
+	// 우주선 텍스처
+	if (!shipTexture.initialize(graphics, SHIP_IMAGE))
+		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initializing ship texture"));
 	
 	// 성운 이미지
 	if (!nebula.initialize(graphics, 0,0,0,&nebulaTexture))
@@ -48,9 +52,22 @@ void Spacewar::initialize(HWND hwnd)
 	if (!planet.initialize(graphics,0, 0, 0, &planetTexture))
 		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initializing planet"));
 
-	// 행성 위치 조정 ( 성운은 0,0에 고정됨)
+	// 우주선 이미지
+	if (!ship.initialize(graphics, SHIP_WIDTH, SHIP_HEIGHT, SHIP_COLS, &shipTexture))
+		throw(GameError(gameErrorNS::FATAL_ERROR, "Error initializing ship"));
+
+	// 행성 초기 설정 ( 성운은 0,0에 고정됨)
 	planet.setX(GAME_WIDTH * 0.5f - planet.getWidth() * 0.5f);
 	planet.setY(GAME_HEIGHT * 0.5f - planet.getHeight() * 0.5f);
+
+	// 우주선 초기 설정
+	ship.setX(GAME_WIDTH / 4);
+	ship.setY(GAME_HEIGHT / 4);
+	ship.setFrames(SHIP_START_FRAME, SHIP_END_FRAME);
+	ship.setCurrentFrame(SHIP_START_FRAME);
+	ship.setFrameDelay(SHIP_ANIMATION_DELAY);
+	//ship.setDegrees(45.0f);
+
 
 	return;
 }
@@ -62,7 +79,15 @@ void Spacewar::initialize(HWND hwnd)
 //===================================================================================
 void Spacewar::update()
 {
-
+	if (input->isKeyDown(VK_RIGHT))
+	{
+		ship.setX(ship.getX() + frameTime * SHIP_SPEED);
+		if (ship.getX() > GAME_WIDTH)
+			ship.setX((float)-ship.getWidth());
+	}
+	
+	
+	ship.update(frameTime);
 }
 
 //===================================================================================
@@ -90,6 +115,7 @@ void Spacewar::render()
 
 	nebula.draw();
 	planet.draw();
+	ship.draw();
 
 	graphics->spriteEnd();
 }
@@ -101,6 +127,7 @@ void Spacewar::render()
 //===================================================================================
 void Spacewar::releaseAll()
 {
+	shipTexture.onLostDevice();
 	planetTexture.onLostDevice();
 	nebulaTexture.onLostDevice();
 	
@@ -115,6 +142,7 @@ void Spacewar::resetAll()
 {
 	planetTexture.onResetDevice();
 	nebulaTexture.onResetDevice();
+	shipTexture.onResetDevice();
 	
 	Game::resetAll();
 	return;

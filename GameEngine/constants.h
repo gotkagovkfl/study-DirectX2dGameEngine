@@ -38,6 +38,7 @@
 // graphic images
 const char NEBULA_IMAGE[] = "pictures\\orion.jpg";  // photo source NASA/courtesy of nasaimages.org 
 const char PLANET_IMAGE[] = "pictures\\planet.png"; // picture of planet
+const char SHIP_IMAGE[] = "pictures\\ship.png";   // spaceship
 
 
 // window
@@ -46,6 +47,16 @@ const char GAME_TITLE[] = "DirectX_2dGameEngine";
 const bool FULLSCREEN = false;              // windowed or fullscreen
 const UINT  GAME_WIDTH = 640;              // width of game in pixels
 const UINT  GAME_HEIGHT = 480;              // height of game in pixels
+
+const int  SHIP_START_FRAME = 0;            // starting frame of ship animation
+const int  SHIP_END_FRAME = 3;              // last frame of ship animation
+const float SHIP_ANIMATION_DELAY = 0.2f;    // time between frames of ship animation
+const int  SHIP_COLS = 2;                   // ship texture has 2 columns
+const int  SHIP_WIDTH = 32;                 // width of ship image
+const int  SHIP_HEIGHT = 32;                // height of ship image
+
+
+const float  SHIP_SPEED = 40;
 
 // game
 const double PI = 3.14159265;

@@ -82,6 +82,30 @@ bool Image::initialize(Graphics* g, int width, int height, int ncols, TextureMan
     return true;
 }
 
+//=============================================================================
+// currentFrame을 설정하고 setRect을 호출한다.
+//=============================================================================
+void Image::setCurrentFrame(int c)
+{
+    if (c >= 0)
+    {
+        currentFrame = c;
+        animComplete = false;
+        setRect();          
+    }
+}
+
+//=============================================================================
+// currentFrame에 맞춰 텍스처 이미지의 경계를 설정해 화면에 보여지는 이미지를 결정한다.
+//=============================================================================
+inline void Image::setRect()
+{
+    spriteData.rect.left = (currentFrame % cols) * spriteData.width;
+    spriteData.rect.right = spriteData.rect.left + spriteData.width;
+    spriteData.rect.top = (currentFrame / cols) * spriteData.height;
+    spriteData.rect.bottom = spriteData.rect.top + spriteData.height;
+}
+
 
 //=============================================================================
 // color를 필터로 사용해 이미지를 그린다. 
@@ -118,7 +142,39 @@ void Image::draw(SpriteData sd, COLOR_ARGB color)
 
     // 스프라이트 그리기
     if (color == graphicsNS::FILTER)        // 필터사용
-        graphics->drawSprite(spriteData, colorFilter);
+        graphics->drawSprite(sd, colorFilter);
     else                                    // color를 필터로 사용 
-        graphics->drawSprite(spriteData, color);
+        graphics->drawSprite(sd, color);
 }
+
+//=============================================================================
+// currentFrame에 맞춰 텍스처 이미지의 경계를 설정해 화면에 보여지는 이미지를 결정한다.
+//=============================================================================
+void Image::update(float frameTime)
+{
+    // 애니메이션 지속 여부 판정 
+    if (endFrame - startFrame > 0) 
+    {
+        animTimer += frameTime;
+        if (animTimer > frameDelay) // 애니메이션이 교체될 딜레이
+        {
+            animTimer -= frameDelay;
+            currentFrame++;
+            if (currentFrame < startFrame || currentFrame > endFrame)  
+            {
+                if (loop == true)   // 반복 애니메이션일 경우
+                    currentFrame = startFrame;
+                else                // 반복하지 않는 애니메이션일 경우
+                {
+                    currentFrame = endFrame;
+                    animComplete = true;
+                }
+            }
+            // currFrame이 바뀌면 이미지 교체
+            setRect();      
+        }
+    }
+}
+
+
+
